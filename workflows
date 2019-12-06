@@ -95,18 +95,33 @@ verbose-execution () {
 
 format-code() {
     info-box "Formatting Python code ..."
-    verbose-execution python -m isort --recursive --apply thenumbers
-    verbose-execution python -m black thenumbers
+    verbose-execution python -m isort --recursive --apply thenumbers tests
+    verbose-execution python -m black thenumbers tests
 }
 
 analyze-code() {
     info-box "Verifying Python code ..."
     (
-        verbose-execution python -m black --check thenumbers
+        verbose-execution python -m black --check thenumbers tests
         verbose-execution flake8 thenumbers
     ) || {
         error-box "The code verification is failed!!!"
         error-text "Please check the output above to find a reason."
+        exit 1
+    }
+}
+
+test-code() {
+    info-box "Running unit testing..."
+    verbose-execution py.test tests
+}
+
+assess-code() {
+    (
+        analyze-code
+        test-code
+    ) || {
+        error-box "The code assessment is failed! :("
         exit 1
     }
 }
@@ -127,6 +142,8 @@ run-app() {
     --colored-text ${TEXT_FORMAT_UNDERLINE} ${TEXT_COLOR_BLACK} "Commands:"
     --colored-text ${TEXT_FORMAT_NORMAL} ${TEXT_COLOR_BLACK} " - format-code            formats the code"
     --colored-text ${TEXT_FORMAT_NORMAL} ${TEXT_COLOR_BLACK} " - analyze-code           checks the quality of the code"
+    --colored-text ${TEXT_FORMAT_NORMAL} ${TEXT_COLOR_BLACK} " - test-code              runs unit testing"
+    --colored-text ${TEXT_FORMAT_NORMAL} ${TEXT_COLOR_BLACK} " - assess-code            runs all checks against the code"
     --colored-text ${TEXT_FORMAT_NORMAL} ${TEXT_COLOR_BLACK} " - install-all-tools      installs required Python packages"
     --colored-text ${TEXT_FORMAT_NORMAL} ${TEXT_COLOR_BLACK} " - run-app                starts the server"
     --colored-text ${TEXT_FORMAT_NORMAL} ${TEXT_COLOR_BLACK} " - help                   prints this message"

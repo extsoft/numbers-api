@@ -11,6 +11,7 @@ The project provides 2 HTTP endpoints
 **Development tools**
 - [black](https://black.readthedocs.io/en/stable/)
 - [wemake-python-styleguide](https://wemake-python-stylegui.de/en/latest/)
+- [pytest](https://docs.pytest.org/en/latest/)
 
 ## Run using source code
 <http://localhost:5000/even> and <http://localhost:5000/random> are available after running the
@@ -23,4 +24,4 @@ python -m thenumbers
 ## Development tips
 1. Run `./workflows install-all-tools` to download required Python packages
 2. Run `./workflows format-code` prior to commit changes
-3. Run `./workflows analyze-code` prior to push changes
+3. Run `./workflows assess-code` prior to push changes
