@@ -12,6 +12,7 @@ The project provides 2 HTTP endpoints
 - [black](https://black.readthedocs.io/en/stable/)
 - [wemake-python-styleguide](https://wemake-python-stylegui.de/en/latest/)
 - [pytest](https://docs.pytest.org/en/latest/)
+- [Mypy](https://mypy.readthedocs.io/)
 
 ## Run using source code
 <http://localhost:5000/even> and <http://localhost:5000/random> are available after running the

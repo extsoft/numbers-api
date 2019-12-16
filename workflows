@@ -103,7 +103,8 @@ analyze-code() {
     info-box "Verifying Python code ..."
     (
         verbose-execution python -m black --check thenumbers tests
-        verbose-execution flake8 thenumbers
+        verbose-execution python -m flake8 thenumbers
+        verbose-execution python -m mypy thenumbers
     ) || {
         error-box "The code verification is failed!!!"
         error-text "Please check the output above to find a reason."
