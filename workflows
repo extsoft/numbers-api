@@ -17,6 +17,8 @@ TEXT_FORMAT_BOLD=1
 TEXT_FORMAT_UNDERLINE=4
 TEXT_FORMAT_BLINKING=5
 
+FULL_IMAGE_NAME=extsoft/numbers-api
+
 --colored-line() {
     # usage: --colored-line <format> <color> <message>...
     local COLOR=""
@@ -114,7 +116,7 @@ analyze-code() {
 
 test-code() {
     info-box "Running unit testing..."
-    verbose-execution py.test tests
+    verbose-execution python -m pytest tests
 }
 
 assess-code() {
@@ -133,6 +135,35 @@ install-all-tools() {
     verbose-execution python -m pip install -r requirements-test.txt
 }
 
+build-image() {
+    verbose-execution docker build \
+        --tag ${FULL_IMAGE_NAME} \
+        --label commit=$(git rev-parse @) \
+        --label branch=$(git rev-parse --abbrev-ref @) \
+        --label version=$(git describe | echo "unknown") \
+        .
+}
+
+assess-image(){
+    local container=test
+    info-text "Starting '${container}' container to check '${FULL_IMAGE_NAME}' image..."
+    info-text "Wait for 'healthy' container status..."
+    local attempt=0
+    verbose-execution docker run -itd --rm --name ${container} ${FULL_IMAGE_NAME}
+    while [[ ! $(docker inspect --format='{{json .State.Health.Status}}' ${container})  == \"healthy\" ]]; do
+		attempt=$((attempt+1))
+		verbose-execution sleep 2s
+		if [[ ${attempt} -gt 10 ]]; then
+		    error-box "The container is not healthy. Something goes wrong..."
+		    verbose-execution docker logs ${container}
+		    verbose-execution docker stop ${container}
+		    exit 1
+		fi
+	done
+	info-text "The '${FULL_IMAGE_NAME}' image has great health!"
+	verbose-execution docker stop ${container}
+}
+
 run-app() {
     verbose-execution python -m thenumbers
 }
@@ -146,6 +177,8 @@ run-app() {
     --colored-text ${TEXT_FORMAT_NORMAL} ${TEXT_COLOR_BLACK} " - test-code              runs unit testing"
     --colored-text ${TEXT_FORMAT_NORMAL} ${TEXT_COLOR_BLACK} " - assess-code            runs all checks against the code"
     --colored-text ${TEXT_FORMAT_NORMAL} ${TEXT_COLOR_BLACK} " - install-all-tools      installs required Python packages"
+    --colored-text ${TEXT_FORMAT_NORMAL} ${TEXT_COLOR_BLACK} " - build-image            creates a new Docker image"
+    --colored-text ${TEXT_FORMAT_NORMAL} ${TEXT_COLOR_BLACK} " - assess-image           checks the Docker image health"
     --colored-text ${TEXT_FORMAT_NORMAL} ${TEXT_COLOR_BLACK} " - run-app                starts the server"
     --colored-text ${TEXT_FORMAT_NORMAL} ${TEXT_COLOR_BLACK} " - help                   prints this message"
 }
@@ -153,7 +186,7 @@ run-app() {
 main() {
     case ${1} in
         -h|--help|help) --help ;;
-        *) "$@";;
+        *) for target in "$@"; do "${target}"; done ;;
     esac
 }
 

@@ -25,4 +25,4 @@ python -m thenumbers
 ## Development tips
 1. Run `./workflows install-all-tools` to download required Python packages
 2. Run `./workflows format-code` prior to commit changes
-3. Run `./workflows assess-code` prior to push changes
+3. Run `./workflows assess-code build-image assess-image` prior to push changes
