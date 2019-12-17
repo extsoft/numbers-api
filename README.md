@@ -23,6 +23,6 @@ python -m thenumbers
 ```
 
 ## Development tips
-1. Run `./workflows install-all-tools` to download required Python packages
-2. Run `./workflows format-code` prior to commit changes
-3. Run `./workflows assess-code build-image assess-image` prior to push changes
+1. Run `./workflows install_all_tools` to download required Python packages
+2. Run `./workflows format_code` prior to commit changes
+3. Run `./workflows assess_code build_image assess_image` prior to push changes

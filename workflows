@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 set -e
 # 8 ANSI colors
 TEXT_COLOR_BLACK=30
@@ -19,11 +19,11 @@ TEXT_FORMAT_BLINKING=5
 
 FULL_IMAGE_NAME=extsoft/numbers-api
 
---colored-line() {
-    # usage: --colored-line <format> <color> <message>...
+colored_line() {
+    # usage: colored_line <format> <color> <message>...
     local COLOR=""
     local RESET=""
-    if [[ -t 1 ]]; then
+    if [ -t 1 ]; then
         COLOR="\e[${1};${2}m"
         RESET="\e[m"
     fi
@@ -37,106 +37,106 @@ FULL_IMAGE_NAME=extsoft/numbers-api
     printf "${RESET}"
 }
 
---colored-text() {
-    # usage: --colored-text <format> <color> <message>...
-    --colored-line "$@"
+colored_text() {
+    # usage: colored_text <format> <color> <message>...
+    colored_line "$@"
     printf "\n"
 }
 
---command-text() {
+command_text() {
     # Display a CLI command
     local COLOR=""
     local RESET=""
-    if [[ -t 1 ]]; then
+    if [ -t 1 ]; then
         COLOR="\e[${TEXT_FORMAT_BOLD};${TEXT_COLOR_GREEN}m"
         RESET="\e[m"
     fi
     printf "${COLOR}==>> ${RESET}"
-    --colored-text ${TEXT_FORMAT_BOLD} ${TEXT_COLOR_BLUE} "$@"
+    colored_text ${TEXT_FORMAT_BOLD} ${TEXT_COLOR_BLUE} "$@"
 }
 
-info-text() {
+info_text() {
     # Display a regular message
-    --colored-text ${TEXT_FORMAT_NORMAL} ${TEXT_COLOR_GREEN} "$@"
+    colored_text ${TEXT_FORMAT_NORMAL} ${TEXT_COLOR_GREEN} "$@"
 }
 
---box-text(){
+box_text(){
     local LAYOUT=${1}
     shift
-    t="$@xxxxxx"
-    c=${replace:-=}
-    ${LAYOUT} ${t//?/$c}
-    ${LAYOUT} "$c$c $@ $c$c"
-    ${LAYOUT} ${t//?/$c}
+    local template="$@xxxx"
+    local delimeter=${replace:-=}
+    ${LAYOUT} "${template//?/${delimeter}}"
+    ${LAYOUT} "${delimeter} $@ ${delimeter}"
+    ${LAYOUT} "${template//?/${delimeter}}"
 }
 
-info-box() {
+info_box() {
     # Display an important message
-     --box-text info-text "$@"
+     box_text info_text "$@"
 }
 
-error-text() {
+error_text() {
     # Display an error message within a single-line log
-    --colored-text ${TEXT_FORMAT_BOLD} ${TEXT_COLOR_RED} "$@"
+    colored_text ${TEXT_FORMAT_BOLD} ${TEXT_COLOR_RED} "$@"
 }
 
-error-box() {
+error_box() {
     # Display an error message within a multi-line log
-    --box-text error-text "$@"
+    box_text error_text "$@"
 }
 
-question-text() {
+question_text() {
     # Display a question on current cursor's line
-    --colored-line ${TEXT_FORMAT_NORMAL} ${TEXT_COLOR_PURPLE} "$@"
+    colored_line ${TEXT_FORMAT_NORMAL} ${TEXT_COLOR_PURPLE} "$@"
 }
 
-verbose-execution () {
-    --command-text "$@"
+verbose_execution() {
+    command_text "$@"
     "$@"
 }
 
-format-code() {
-    info-box "Formatting Python code ..."
-    verbose-execution python -m isort --recursive --apply thenumbers tests
-    verbose-execution python -m black thenumbers tests
+format_code() {
+    info_box "Formatting Python code ..."
+    verbose_execution python -m isort --recursive --apply thenumbers tests
+    verbose_execution python -m black thenumbers tests
 }
 
-analyze-code() {
-    info-box "Verifying Python code ..."
+analyze_code() {
+    info_box "Verifying Python code ..."
     (
-        verbose-execution python -m black --check thenumbers tests
-        verbose-execution python -m flake8 thenumbers
-        verbose-execution python -m mypy thenumbers
+        verbose_execution python -m black --check thenumbers tests
+        verbose_execution python -m flake8 thenumbers
+        verbose_execution python -m mypy thenumbers
     ) || {
-        error-box "The code verification is failed!!!"
-        error-text "Please check the output above to find a reason."
+        error_box "The code verification is failed!!!"
+        error_text "Please check the output above to find a reason."
         exit 1
     }
 }
 
-test-code() {
-    info-box "Running unit testing..."
-    verbose-execution python -m pytest tests
+test_code() {
+    info_box "Running unit testing..."
+    verbose_execution python -m pytest tests
 }
 
-assess-code() {
+assess_code() {
     (
-        analyze-code
-        test-code
+        analyze_code
+        test_code
     ) || {
-        error-box "The code assessment is failed! :("
+        error_box "The code assessment is failed! :("
         exit 1
     }
 }
 
-install-all-tools() {
-    info-box "Configuring development environment..."
-    verbose-execution python -m pip install -r requirements.txt
-    verbose-execution python -m pip install -r requirements-test.txt
+install_all_tools() {
+    info_box "Configuring development environment..."
+    verbose_execution python -m pip install -r requirements.txt
+    verbose_execution python -m pip install -r requirements-test.txt
 }
 
-build-image() {
-    verbose-execution docker build \
+build_image() {
+    verbose_execution docker build \
         --tag ${FULL_IMAGE_NAME} \
         --label commit=$(git rev-parse @) \
         --label branch=$(git rev-parse --abbrev-ref @) \
@@ -144,49 +144,49 @@ build-image() {
         .
 }
 
-assess-image(){
+assess_image(){
     local container=test
-    info-text "Starting '${container}' container to check '${FULL_IMAGE_NAME}' image..."
-    info-text "Wait for 'healthy' container status..."
+    info_text "Starting '${container}' container to check '${FULL_IMAGE_NAME}' image..."
+    info_text "Wait for 'healthy' container status..."
     local attempt=0
-    verbose-execution docker run -itd --rm --name ${container} ${FULL_IMAGE_NAME}
-    while [[ ! $(docker inspect --format='{{json .State.Health.Status}}' ${container})  == \"healthy\" ]]; do
+    verbose_execution docker run -itd --rm --name ${container} ${FULL_IMAGE_NAME}
+    while [ ! $(docker inspect --format='{{json .State.Health.Status}}' ${container})  = "\"healthy\"" ]; do
 		attempt=$((attempt+1))
-		verbose-execution sleep 2s
-		if [[ ${attempt} -gt 10 ]]; then
-		    error-box "The container is not healthy. Something goes wrong..."
-		    verbose-execution docker logs ${container}
-		    verbose-execution docker stop ${container}
+		verbose_execution sleep 2s
+		if [ ${attempt} -gt 10 ]; then
+		    error_box "The container is not healthy. Something goes wrong..."
+		    verbose_execution docker logs ${container}
+		    verbose_execution docker stop ${container}
 		    exit 1
 		fi
 	done
-	info-text "The '${FULL_IMAGE_NAME}' image has great health!"
-	verbose-execution docker stop ${container}
+	info_text "The '${FULL_IMAGE_NAME}' image has great health!"
+	verbose_execution docker stop ${container}
 }
 
-run-app() {
-    verbose-execution python -m thenumbers
+run_app() {
+    verbose_execution python -m thenumbers
 }
 
---help() {
-    --colored-text ${TEXT_FORMAT_BOLD} ${TEXT_COLOR_BLACK} "usage: ./workflows <command>"
-    --colored-text ${TEXT_FORMAT_NORMAL} ${TEXT_COLOR_BLACK} ""
-    --colored-text ${TEXT_FORMAT_UNDERLINE} ${TEXT_COLOR_BLACK} "Commands:"
-    --colored-text ${TEXT_FORMAT_NORMAL} ${TEXT_COLOR_BLACK} " - format-code            formats the code"
-    --colored-text ${TEXT_FORMAT_NORMAL} ${TEXT_COLOR_BLACK} " - analyze-code           checks the quality of the code"
-    --colored-text ${TEXT_FORMAT_NORMAL} ${TEXT_COLOR_BLACK} " - test-code              runs unit testing"
-    --colored-text ${TEXT_FORMAT_NORMAL} ${TEXT_COLOR_BLACK} " - assess-code            runs all checks against the code"
-    --colored-text ${TEXT_FORMAT_NORMAL} ${TEXT_COLOR_BLACK} " - install-all-tools      installs required Python packages"
-    --colored-text ${TEXT_FORMAT_NORMAL} ${TEXT_COLOR_BLACK} " - build-image            creates a new Docker image"
-    --colored-text ${TEXT_FORMAT_NORMAL} ${TEXT_COLOR_BLACK} " - assess-image           checks the Docker image health"
-    --colored-text ${TEXT_FORMAT_NORMAL} ${TEXT_COLOR_BLACK} " - run-app                starts the server"
-    --colored-text ${TEXT_FORMAT_NORMAL} ${TEXT_COLOR_BLACK} " - help                   prints this message"
+usage() {
+    colored_text ${TEXT_FORMAT_BOLD} ${TEXT_COLOR_BLACK} "usage: ./workflows <command>"
+    colored_text ${TEXT_FORMAT_NORMAL} ${TEXT_COLOR_BLACK} ""
+    colored_text ${TEXT_FORMAT_UNDERLINE} ${TEXT_COLOR_BLACK} "Commands:"
+    colored_text ${TEXT_FORMAT_NORMAL} ${TEXT_COLOR_BLACK} " - format_code            formats the code"
+    colored_text ${TEXT_FORMAT_NORMAL} ${TEXT_COLOR_BLACK} " - analyze_code           checks the quality of the code"
+    colored_text ${TEXT_FORMAT_NORMAL} ${TEXT_COLOR_BLACK} " - test_code              runs unit testing"
+    colored_text ${TEXT_FORMAT_NORMAL} ${TEXT_COLOR_BLACK} " - assess_code            runs all checks against the code"
+    colored_text ${TEXT_FORMAT_NORMAL} ${TEXT_COLOR_BLACK} " - install_all_tools      installs required Python packages"
+    colored_text ${TEXT_FORMAT_NORMAL} ${TEXT_COLOR_BLACK} " - build_image            creates a new Docker image"
+    colored_text ${TEXT_FORMAT_NORMAL} ${TEXT_COLOR_BLACK} " - assess_image           checks the Docker image health"
+    colored_text ${TEXT_FORMAT_NORMAL} ${TEXT_COLOR_BLACK} " - run_app                starts the server"
+    colored_text ${TEXT_FORMAT_NORMAL} ${TEXT_COLOR_BLACK} " - help                   prints this message"
 }
 
 main() {
     case ${1} in
-        -h|--help|help) --help ;;
-        *) for target in "$@"; do "${target}"; done ;;
+        -h|--help|help) usage ;;
+        *) for target in "$@"; do eval "${target}"; done ;;
     esac
 }
 
