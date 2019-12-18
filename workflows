@@ -95,41 +95,33 @@ verbose_execution() {
     "$@"
 }
 
-format_code() {
+style_code() {
     info_box "Formatting Python code ..."
     verbose_execution python -m isort --recursive --apply thenumbers tests
     verbose_execution python -m black thenumbers tests
 }
 
-analyze_code() {
-    info_box "Verifying Python code ..."
-    (
-        verbose_execution python -m black --check thenumbers tests
-        verbose_execution python -m flake8 thenumbers
-        verbose_execution python -m mypy thenumbers
-    ) || {
-        error_box "The code verification is failed!!!"
-        error_text "Please check the output above to find a reason."
-        exit 1
-    }
-}
-
-test_code() {
-    info_box "Running unit testing..."
-    verbose_execution python -m pytest tests
-}
+assess_black(){ verbose_execution python -m black --check thenumbers tests; }
+assess_isort(){ verbose_execution python -m isort --check-only --recursive thenumbers tests; }
+assess_flake(){ verbose_execution python -m flake8 thenumbers; }
+assess_mypy() { verbose_execution python -m mypy thenumbers; }
+assess_tests(){ verbose_execution python -m pytest tests; }
 
 assess_code() {
-    (
-        analyze_code
-        test_code
-    ) || {
-        error_box "The code assessment is failed! :("
+    info_box "Running all Python's code verifications..."
+    local fail
+    for command in assess_black assess_isort assess_mypy assess_flake assess_tests; do
+        "${command}" || fail+="${command}, "
+    done
+    if [ -n "${fail}" ]; then
+        error_box "The code verification is failed!!!"
+        error_text "Failed commands: ${fail}"
+        error_text "Please check the output above to find a reason."
         exit 1
-    }
+    fi
 }
 
-install_all_tools() {
+install_all_packages() {
     info_box "Configuring development environment..."
     verbose_execution python -m pip install -r requirements.txt
     verbose_execution python -m pip install -r requirements-test.txt
@@ -137,14 +129,31 @@ install_all_tools() {
 
 build_image() {
     verbose_execution docker build \
+        --no-cache \
         --tag ${FULL_IMAGE_NAME} \
         --label commit=$(git rev-parse @) \
         --label branch=$(git rev-parse --abbrev-ref @) \
-        --label version=$(git describe | echo "unknown") \
+        --label version=$(git describe 2>/dev/null | echo "unknown") \
         .
 }
 
-assess_image(){
+assess_image_code() {
+     verbose_execution docker run --rm --user root \
+            -v $(pwd)/tests:/home/thenumbers/tests \
+            -v $(pwd)/.flake8:/home/thenumbers/.flake8 \
+            -v $(pwd)/.isort.cfg:/home/thenumbers/.isort.cfg \
+            -v $(pwd)/requirements-test.txt:/home/thenumbers/requirements-test.txt \
+            -v $(pwd)/workflows:/home/thenumbers/workflows \
+            --workdir /home/thenumbers \
+            --entrypoint ./workflows \
+            ${FULL_IMAGE_NAME} \
+            "apk add --virtual .build-deps gcc musl-dev sudo" \
+            "sudo --user thenumbers sh" \
+            "python -m pip install --user --no-cache-dir --no-warn-script-location -r requirements-test.txt" \
+            assess_code
+}
+
+assess_image_health(){
     local container=test
     info_text "Starting '${container}' container to check '${FULL_IMAGE_NAME}' image..."
     info_text "Wait for 'healthy' container status..."
@@ -164,29 +173,50 @@ assess_image(){
 	verbose_execution docker stop ${container}
 }
 
+quality_pipeline() {
+    build_image
+    assess_image_code
+    assess_image_health
+}
+
 run_app() {
     verbose_execution python -m thenumbers
 }
 
 usage() {
-    colored_text ${TEXT_FORMAT_BOLD} ${TEXT_COLOR_BLACK} "usage: ./workflows <command>"
-    colored_text ${TEXT_FORMAT_NORMAL} ${TEXT_COLOR_BLACK} ""
-    colored_text ${TEXT_FORMAT_UNDERLINE} ${TEXT_COLOR_BLACK} "Commands:"
-    colored_text ${TEXT_FORMAT_NORMAL} ${TEXT_COLOR_BLACK} " - format_code            formats the code"
-    colored_text ${TEXT_FORMAT_NORMAL} ${TEXT_COLOR_BLACK} " - analyze_code           checks the quality of the code"
-    colored_text ${TEXT_FORMAT_NORMAL} ${TEXT_COLOR_BLACK} " - test_code              runs unit testing"
-    colored_text ${TEXT_FORMAT_NORMAL} ${TEXT_COLOR_BLACK} " - assess_code            runs all checks against the code"
-    colored_text ${TEXT_FORMAT_NORMAL} ${TEXT_COLOR_BLACK} " - install_all_tools      installs required Python packages"
-    colored_text ${TEXT_FORMAT_NORMAL} ${TEXT_COLOR_BLACK} " - build_image            creates a new Docker image"
-    colored_text ${TEXT_FORMAT_NORMAL} ${TEXT_COLOR_BLACK} " - assess_image           checks the Docker image health"
-    colored_text ${TEXT_FORMAT_NORMAL} ${TEXT_COLOR_BLACK} " - run_app                starts the server"
-    colored_text ${TEXT_FORMAT_NORMAL} ${TEXT_COLOR_BLACK} " - help                   prints this message"
+cat <<MESSAGE
+usage: ./workflows <command>
+
+Commands:
+ code modification:
+    - style_code            formats the code
+
+ code verifications:
+    - assess_black          checks formatting
+    - assess_isort          checks imports order
+    - assess_flake          runs static analysis
+    - assess_mypy           checks types usage
+    - assess_tests          runs unit testing
+    - assess_code           runs all checks against the code
+
+ Docker verifications:
+    - assess_image_code     runs all checks against the code within Docker image
+    - assess_image_health   checks the Docker image health
+
+ other:
+    - build_image           creates a new Docker image
+    - install_all_packages  installs packages for development
+    - run_app               runs the app from Python sources (development only)
+    - quality_pipeline      runs all assessments (aka CI workflow)
+    - help                  prints this message
+
+MESSAGE
 }
 
 main() {
     case ${1} in
         -h|--help|help) usage ;;
-        *) for target in "$@"; do eval "${target}"; done ;;
+        *) for target in "$@"; do info_box "${target}"; eval "${target}"; done ;;
     esac
 }
 

@@ -14,15 +14,9 @@ The project provides 2 HTTP endpoints
 - [pytest](https://docs.pytest.org/en/latest/)
 - [Mypy](https://mypy.readthedocs.io/)
 
-## Run using source code
-<http://localhost:5000/even> and <http://localhost:5000/random> are available after running the
-following commands:
-```bash
-python -m pip install -r requirements.txt
-python -m thenumbers
-```
-
 ## Development tips
-1. Run `./workflows install_all_tools` to download required Python packages
-2. Run `./workflows format_code` prior to commit changes
-3. Run `./workflows assess_code build_image assess_image` prior to push changes
+Almost all development actions are implemented on [`workflows`](workflows) script. Run `./workflows help` to see
+all commands. Some of them are:
+- `./workflows install_all_packages` installs packages for development
+- `./workflows style_code` formats the code
+- `./workflows quality_pipeline` runs all assessments (aka CI workflow)

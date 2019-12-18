@@ -1,0 +1,9 @@
+name: Quality pipeline
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Assess the quality
+      run: bash workflows quality_pipeline
