@@ -127,13 +127,19 @@ install_all_packages() {
     verbose_execution python -m pip install -r requirements-test.txt
 }
 
-build_image() {
+build_ci_image() {
     verbose_execution docker build \
         --no-cache \
         --tag ${FULL_IMAGE_NAME} \
         --label commit=$(git rev-parse @) \
         --label branch=$(git rev-parse --abbrev-ref @) \
         --label version=$(git describe 2>/dev/null | echo "unknown") \
+        .
+}
+
+build_dev_image() {
+    verbose_execution docker build \
+        --tag ${FULL_IMAGE_NAME} \
         .
 }
 
@@ -174,7 +180,7 @@ assess_image_health(){
 }
 
 quality_pipeline() {
-    build_image
+    build_ci_image
     assess_image_code
     assess_image_health
 }
@@ -199,15 +205,20 @@ Commands:
     - assess_tests          runs unit testing
     - assess_code           runs all checks against the code
 
- Docker verifications:
+ image modification:
+    - build_ci_image        creates a new production Docker image
+    - build_dev_image       creates a new Docker image (opimized for build time)
+
+ image verifications:
     - assess_image_code     runs all checks against the code within Docker image
     - assess_image_health   checks the Docker image health
 
- other:
-    - build_image           creates a new Docker image
+ project:
     - install_all_packages  installs packages for development
     - run_app               runs the app from Python sources (development only)
     - quality_pipeline      runs all assessments (aka CI workflow)
+
+ other:
     - help                  prints this message
 
 MESSAGE
