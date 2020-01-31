@@ -3,6 +3,13 @@ The project provides 2 HTTP endpoints
 - `/even` that returns an even number sequentially from 0
 - `/random` that returns a random positive number
 
+[actions]: https://github.com/extsoft/numbers-api/actions?query=workflow%3A%22Quality+pipeline%22
+[black]: https://github.com/psf/black
+[wemake]: https://github.com/wemake-services/wemake-python-styleguide
+[![Quality pipeline](https://github.com/extsoft/numbers-api/workflows/Quality%20pipeline/badge.svg)][actions]
+[![black](https://img.shields.io/badge/code%20style-black-000000.svg)][black]
+[![wemake](https://img.shields.io/badge/style-wemake-000000.svg)][wemake]
+
 ## Used tools
 **Production tools**
 - Python 3.7
