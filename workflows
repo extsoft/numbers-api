@@ -183,7 +183,7 @@ _push_image(){
         local public_image_name=docker.pkg.github.com/extsoft/numbers-api/app:${1}
         docker tag ${INTERNAL_IMAGE_NAME} ${public_image_name}
         info_text "Push new image: " ${public_image_name}
-        docker push
+        docker push ${public_image_name}
 }
 
 publish_image() {
