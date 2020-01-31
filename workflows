@@ -188,8 +188,9 @@ _push_image(){
 
 publish_image() {
     local branch=$(git rev-parse --abbrev-ref @)
+    local tag=$(git describe --exact-match --always @ 2>/dev/null)
     info_box "Push the 'latest' image"
-    if [[ ${branch} == master ]]; then
+    if [[ ${branch} == master || -n "${tag}" ]]; then
         _push_image latest
     else
         info_text "Do nothing as"
@@ -197,8 +198,7 @@ publish_image() {
         info_text "but 'latest' image can be built based on 'master' branch only."
     fi
     info_box "Push a release image"
-    local tag=$(git describe --exact-match --always @ 2>/dev/null)
-    if [[ -n ${tag} ]]; then
+    if [[ -n "${tag}" ]]; then
         _push_image ${tag}
     else
         info_text "Do nothing as"
