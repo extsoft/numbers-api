@@ -188,7 +188,7 @@ _push_image(){
 
 publish_image() {
     local branch=$(git rev-parse --abbrev-ref @)
-    local tag=$(git describe --exact-match --always @ 2>/dev/null)
+    local tag=$(git describe --exact-match --always --tags @ 2>/dev/null)
     info_box "Push the 'latest' image"
     if [[ ${branch} == master || -n "${tag}" ]]; then
         _push_image latest
