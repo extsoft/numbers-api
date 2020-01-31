@@ -4,6 +4,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - name: Assess the quality
       run: bash workflows quality_pipeline
+    - name: Push a new Docker image
+      run: |
+        echo ${{ secrets.GITHUB_TOKEN }} | docker login --username extsoft --password-stdin docker.pkg.github.com
+        bash workflows publish_image

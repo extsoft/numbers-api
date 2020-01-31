@@ -10,6 +10,15 @@ The project provides 2 HTTP endpoints
 [![black](https://img.shields.io/badge/code%20style-black-000000.svg)][black]
 [![wemake](https://img.shields.io/badge/style-wemake-000000.svg)][wemake]
 
+## Quick start
+Run
+```bash
+docker run -i --rm --publish 5000:5000 docker.pkg.github.com/extsoft/numbers-api/app:latest
+```
+and open either <http://localhost:5000/even> or <http://localhost:5000/random> in a browser.
+
+If you need some specific version of the Docker image, please go to <https://github.com/extsoft/numbers-api/packages>.
+
 ## Used tools
 **Production tools**
 - Python 3.7

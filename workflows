@@ -17,7 +17,7 @@ TEXT_FORMAT_BOLD=1
 TEXT_FORMAT_UNDERLINE=4
 TEXT_FORMAT_BLINKING=5
 
-FULL_IMAGE_NAME=extsoft/numbers-api
+INTERNAL_IMAGE_NAME=numbers-api:latest
 
 colored_line() {
     # usage: colored_line <format> <color> <message>...
@@ -130,7 +130,7 @@ install_all_packages() {
 build_ci_image() {
     verbose_execution docker build \
         --no-cache \
-        --tag ${FULL_IMAGE_NAME} \
+        --tag ${INTERNAL_IMAGE_NAME} \
         --label commit=$(git rev-parse @) \
         --label branch=$(git rev-parse --abbrev-ref @) \
         --label version=$(git describe 2>/dev/null | echo "unknown") \
@@ -139,7 +139,7 @@ build_ci_image() {
 
 build_dev_image() {
     verbose_execution docker build \
-        --tag ${FULL_IMAGE_NAME} \
+        --tag ${INTERNAL_IMAGE_NAME} \
         .
 }
 
@@ -152,7 +152,7 @@ assess_image_code() {
             -v $(pwd)/workflows:/home/thenumbers/workflows \
             --workdir /home/thenumbers \
             --entrypoint ./workflows \
-            ${FULL_IMAGE_NAME} \
+            ${INTERNAL_IMAGE_NAME} \
             "apk add --virtual .build-deps gcc musl-dev sudo" \
             "sudo --user thenumbers sh" \
             "python -m pip install --user --no-cache-dir --no-warn-script-location -r requirements-test.txt" \
@@ -161,10 +161,10 @@ assess_image_code() {
 
 assess_image_health(){
     local container=test
-    info_text "Starting '${container}' container to check '${FULL_IMAGE_NAME}' image..."
+    info_text "Starting '${container}' container to check '${INTERNAL_IMAGE_NAME}' image..."
     info_text "Wait for 'healthy' container status..."
     local attempt=0
-    verbose_execution docker run -itd --rm --name ${container} ${FULL_IMAGE_NAME}
+    verbose_execution docker run -itd --rm --name ${container} ${INTERNAL_IMAGE_NAME}
     while [ ! $(docker inspect --format='{{json .State.Health.Status}}' ${container})  = "\"healthy\"" ]; do
 		attempt=$((attempt+1))
 		verbose_execution sleep 2s
@@ -175,8 +175,35 @@ assess_image_health(){
 		    exit 1
 		fi
 	done
-	info_text "The '${FULL_IMAGE_NAME}' image has great health!"
+	info_text "The '${INTERNAL_IMAGE_NAME}' image has great health!"
 	verbose_execution docker stop ${container}
+}
+
+_push_image(){
+        local public_image_name=docker.pkg.github.com/extsoft/numbers-api/app:${1}
+        docker tag ${INTERNAL_IMAGE_NAME} ${public_image_name}
+        info_text "Push new image: " ${public_image_name}
+        docker push
+}
+
+publish_image() {
+    local branch=$(git rev-parse --abbrev-ref @)
+    info_box "Push the 'latest' image"
+    if [[ ${branch} == master ]]; then
+        _push_image latest
+    else
+        info_text "Do nothing as"
+        info_text "the current revision is from '${branch}' branch"
+        info_text "but 'latest' image can be built based on 'master' branch only."
+    fi
+    info_box "Push a release image"
+    local tag=$(git describe --exact-match --always @ 2>/dev/null)
+    if [[ -n ${tag} ]]; then
+        _push_image ${tag}
+    else
+        info_text "Do nothing as"
+        info_text "the current revision is not a tag."
+    fi
 }
 
 quality_pipeline() {
@@ -217,6 +244,7 @@ Commands:
     - install_all_packages  installs packages for development
     - run_app               runs the app from Python sources (development only)
     - quality_pipeline      runs all assessments (aka CI workflow)
+    - publish_image         pushes the last built Docker image to Github register
 
  other:
     - help                  prints this message
