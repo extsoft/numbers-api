@@ -165,25 +165,25 @@ assess_image_health(){
     info_text "Wait for 'healthy' container status..."
     local attempt=0
     verbose_execution docker run -itd --rm --name ${container} ${INTERNAL_IMAGE_NAME}
-    while [ ! $(docker inspect --format='{{json .State.Health.Status}}' ${container})  = "\"healthy\"" ]; do
-		attempt=$((attempt+1))
-		verbose_execution sleep 2s
-		if [ ${attempt} -gt 10 ]; then
-		    error_box "The container is not healthy. Something goes wrong..."
-		    verbose_execution docker logs ${container}
-		    verbose_execution docker stop ${container}
-		    exit 1
-		fi
-	done
-	info_text "The '${INTERNAL_IMAGE_NAME}' image has great health!"
-	verbose_execution docker stop ${container}
+    while [ ! $(docker inspect --format='{{json .State.Health.Status}}' ${container}) = "\"healthy\"" ]; do
+        attempt=$((attempt+1))
+        verbose_execution sleep 2s
+        if [ ${attempt} -gt 10 ]; then
+            error_box "The container is not healthy. Something goes wrong..."
+            verbose_execution docker logs ${container}
+            verbose_execution docker stop ${container}
+            exit 1
+        fi
+    done
+    info_text "The '${INTERNAL_IMAGE_NAME}' image has great health!"
+    verbose_execution docker stop ${container}
 }
 
 _push_image(){
         local public_image_name=docker.pkg.github.com/extsoft/numbers-api/app:${1}
-        docker tag ${INTERNAL_IMAGE_NAME} ${public_image_name}
-        info_text "Push new image: " ${public_image_name}
-        docker push ${public_image_name}
+        info_text "New image name: " ${public_image_name}
+        verbose_execution docker tag ${INTERNAL_IMAGE_NAME} ${public_image_name}
+        verbose_execution docker push ${public_image_name}
 }
 
 publish_image() {
