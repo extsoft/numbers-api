@@ -9,6 +9,7 @@ RUN apk add --no-cache curl && \
     adduser -S -u 1000 -h ${THEHOME} -G ${THEUSER} ${THEUSER}
 USER ${THEUSER}
 EXPOSE 5000
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 COPY --chown=${THEUSER}:${THEUSER} entry.sh ./
 ENTRYPOINT ["./entry.sh"]
 HEALTHCHECK --interval=5s --timeout=2s --retries=3 \
