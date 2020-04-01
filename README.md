@@ -21,7 +21,7 @@ If you need some specific version of the Docker image, please go to <https://git
 
 ## Used tools
 **Production tools**
-- Python 3.7
+- Python 3.8
 - [Flask](https://flask.palletsprojects.com/en/1.1.x/)
 
 **Development tools**

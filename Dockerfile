@@ -1,4 +1,4 @@
-FROM python:3.7.0-alpine
+FROM python:3.8.2-alpine
 LABEL maintainer="Dmytro Serdiuk <dmytro.serdiuk@gmail.com>" \
     homepage=https://github.com/extsoft/numbers-api
 ENV THEUSER="thenumbers" THEHOME="/home/thenumbers"
