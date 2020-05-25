@@ -6,9 +6,11 @@ The project provides 2 HTTP endpoints
 [actions]: https://github.com/extsoft/numbers-api/actions?query=workflow%3A%22Quality+pipeline%22
 [black]: https://github.com/psf/black
 [wemake]: https://github.com/wemake-services/wemake-python-styleguide
+[eg]: https://github.com/bees-hive/elegant-git
 [![Quality pipeline](https://github.com/extsoft/numbers-api/workflows/Quality%20pipeline/badge.svg)][actions]
 [![black](https://img.shields.io/badge/code%20style-black-000000.svg)][black]
 [![wemake](https://img.shields.io/badge/style-wemake-000000.svg)][wemake]
+[![assistant: Elegant Git](https://img.shields.io/badge/assistant-Elegant%20Git-000000.svg)][eg]
 
 ## Quick start
 Run
