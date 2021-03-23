@@ -97,12 +97,12 @@ verbose_execution() {
 
 style_code() {
     info_box "Formatting Python code ..."
-    verbose_execution python -m isort --recursive --apply thenumbers tests
-    verbose_execution python -m black thenumbers tests
+    verbose_execution python -m isort --multi-line 3 --trailing-comma --line-length 120 thenumbers tests
+    verbose_execution python -m black --line-length 120 thenumbers tests
 }
 
 assess_black(){ verbose_execution python -m black --check thenumbers tests; }
-assess_isort(){ verbose_execution python -m isort --check-only --recursive thenumbers tests; }
+assess_isort(){ verbose_execution python -m isort --multi-line 3 --trailing-comma --line-length 120 --check-only thenumbers tests; }
 assess_flake(){ verbose_execution python -m flake8 thenumbers; }
 assess_mypy() { verbose_execution python -m mypy thenumbers; }
 assess_tests(){ verbose_execution python -m pytest tests; }
@@ -149,9 +149,9 @@ assess_image_code() {
             -v $(pwd)/.flake8:/home/thenumbers/.flake8 \
             -v $(pwd)/.isort.cfg:/home/thenumbers/.isort.cfg \
             -v $(pwd)/requirements-test.txt:/home/thenumbers/requirements-test.txt \
-            -v $(pwd)/workflows:/home/thenumbers/workflows \
+            -v $(pwd)/workflows.sh:/home/thenumbers/workflows.sh \
             --workdir /home/thenumbers \
-            --entrypoint ./workflows \
+            --entrypoint ./workflows.sh \
             ${INTERNAL_IMAGE_NAME} \
             "apk add --virtual .build-deps gcc musl-dev sudo" \
             "sudo --user thenumbers sh" \
@@ -218,7 +218,7 @@ run_app() {
 
 usage() {
 cat <<MESSAGE
-usage: ./workflows <command>
+usage: ${0} <command>
 
 Commands:
  code modification:

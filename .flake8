@@ -1,6 +1,6 @@
 [flake8]
 max_complexity = 5
-max-line-length = 88
+max-line-length = 120
 statistics = True
 count = True
 inline-quotes = "

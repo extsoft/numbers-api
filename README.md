@@ -33,8 +33,8 @@ If you need some specific version of the Docker image, please go to <https://git
 - [Mypy](https://mypy.readthedocs.io/)
 
 ## Development tips
-Almost all development actions are implemented on [`workflows`](workflows) script. Run `./workflows help` to see
+Almost all development actions are implemented on [`workflows.sh`](workflows.sh) script. Run `./workflows.sh help` to see
 all commands. Some of them are:
-- `./workflows install_all_packages` installs packages for development
-- `./workflows style_code` formats the code
-- `./workflows quality_pipeline` runs all assessments (aka CI workflow)
+- `./workflows.sh install_all_packages` installs packages for development
+- `./workflows.sh style_code` formats the code
+- `./workflows.sh quality_pipeline` runs all assessments (aka CI workflow)

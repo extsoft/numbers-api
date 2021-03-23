@@ -6,8 +6,8 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Assess the quality
-      run: bash workflows quality_pipeline
+      run: bash workflows.sh quality_pipeline
     - name: Push a new Docker image
       run: |
         echo ${{ secrets.GITHUB_TOKEN }} | docker login --username extsoft --password-stdin docker.pkg.github.com
-        bash workflows publish_image
+        bash workflows.sh publish_image
